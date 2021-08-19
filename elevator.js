@@ -1,41 +1,22 @@
 {
     init: function(elevators, floors) {
-        var callButtonsPressed = [];
+        var elevatorToSend = 0;
 
         elevators.forEach(elevator => {
-            elevator.on("floor_button_pressed", function (floorNum) { elevator.goToFloor(floorNum); });
-            elevator.on("passing_floor", function (floorNum, direction) {
-                if (callButtonsPressed.includes(floorNum)) {
-                    elevator.goToFloor(floorNum, true);
-                }
-            });
-            elevator.on("idle", function () { elevator.goToFloor(0); });
-            elevator.on("stopped_at_floor", function (floorNum) {
-                const index = callButtonsPressed.indexOf(floorNum);
-                if (index > -1) {
-                    callButtonsPressed.splice(index, 1);
-                }
+            elevator.on("floor_button_pressed", function (floorNum) {
+                elevator.goToFloor(floorNum);
             });
         });
 
         function respondToButtonPressed(floor) {
-            console.log(callButtonsPressed);
-            var minDistance = floors.length;
-            var nearestElevator = null;
-            callButtonsPressed.push(floor.floorNum())
-            elevators.forEach(elevator => {
-                var distance = Math.abs(floor.floorNum() - elevator.currentFloor());
-                if (distance <= minDistance) {
-                    minDistance = distance;
-                    nearestElevator = elevator;
-                }
-            })
-            nearestElevator.goToFloor(floor.floorNum())
+            do {
+                elevatorToSend = ++elevatorToSend % 3;
+            } while (elevators[elevatorToSend].loadFactor() == 1);
+            elevators[elevatorToSend].goToFloor(floor.floorNum());
         }
 
         floors.forEach(floor => {
             floor.on("up_button_pressed", respondToButtonPressed);
-
             floor.on("down_button_pressed", respondToButtonPressed);
         });
     },
