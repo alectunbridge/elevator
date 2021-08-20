@@ -1,23 +1,36 @@
 {
     init: function(elevators, floors) {
-        var elevatorToSend = 0;
+        var callButtonsPressed = [];
 
         elevators.forEach(elevator => {
             elevator.on("floor_button_pressed", function (floorNum) {
                 elevator.goToFloor(floorNum);
             });
+            elevator.on("passing_floor", function (floorNum, direction) {
+                if (elevator.getPressedFloors().includes(floorNum) || (callButtonsPressed.includes(floorNum) && (elevator.loadFactor() < 0.5))) {
+                    elevator.goToFloor(floorNum, true);
+                }
+            });
+            elevator.on("idle", function () {
+                elevator.goToFloor(0);
+            });
+            elevator.on("stopped_at_floor", function (floorNum) {
+                const index = callButtonsPressed.indexOf(floorNum);
+                if (index > -1) {
+                    callButtonsPressed.splice(index, 1);
+                }
+            });
         });
 
-        function respondToButtonPressed(floor) {
-            do {
-                elevatorToSend = ++elevatorToSend % 3;
-            } while (elevators[elevatorToSend].loadFactor() == 1);
-            elevators[elevatorToSend].goToFloor(floor.floorNum());
+        function callButtonPressed(floor) {
+            if (!callButtonsPressed.includes(floor.floorNum())) {
+                callButtonsPressed.push(floor.floorNum());
+            }
         }
 
         floors.forEach(floor => {
-            floor.on("up_button_pressed", respondToButtonPressed);
-            floor.on("down_button_pressed", respondToButtonPressed);
+            floor.on("up_button_pressed", callButtonPressed);
+            floor.on("down_button_pressed", callButtonPressed);
         });
     },
     update: function(dt, elevators, floors) {
