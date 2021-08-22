@@ -18,7 +18,7 @@
                 }
 
                 var elevatorHasSpace = true;
-                if (elevator.maxPassengerCount() > 4) {
+                if (elevator.maxPassengerCount() > 5) {
                     elevatorHasSpace = elevator.loadFactor() < 0.75;
                 } else {
                     elevatorHasSpace = elevator.loadFactor() < 0.5;
@@ -33,7 +33,7 @@
                 }
                 var gettingOn = callButtonArrayToCheck.includes(floorNum) && elevatorHasSpace;
 
-                if (gettingOff || (gettingOn && elevatorHasSpace)) {
+                if (gettingOff || gettingOn) {
                     console.log(`floor: ${floorNum}, floorsPressed: ${elevator.getPressedFloors()}, callButtonsPressed: ${callButtonArrayToCheck}, gettingOff: ${gettingOff}, gettingOn: ${gettingOn}`)
                     elevator.goToFloor(floorNum, true);
                 }
