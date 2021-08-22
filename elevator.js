@@ -7,22 +7,31 @@
                 elevator.goToFloor(floorNum);
             });
             elevator.on("passing_floor", function (floorNum, direction) {
+                var elevatorHasSpace = true;
+                if (elevator.maxPassengerCount() > 4) {
+                    elevatorHasSpace = elevator.loadFactor() < 0.75;
+                } else {
+                    elevatorHasSpace = elevator.loadFactor() < 0.5;
+                }
                 var gettingOff = elevator.getPressedFloors().includes(floorNum);
-                var gettingOn = callButtonsPressed.includes(floorNum) && (elevator.loadFactor() < 0.5);
-                if ( gettingOff || gettingOn ) {
+                var gettingOn = callButtonsPressed.includes(floorNum) && elevatorHasSpace;
+
+                if (gettingOff || (gettingOn && elevatorHasSpace)) {
+                    console.log(`floor: ${floorNum}, floorsPressed: ${elevator.getPressedFloors()}, callButtonsPressed: ${callButtonsPressed}, gettingOff: ${gettingOff}, gettingOn: ${gettingOn}`)
                     elevator.goToFloor(floorNum, true);
-                    console.log(`floor: ${floorNum}, gettingOff: ${gettingOff}, gettingOn: ${gettingOn}`)
                 }
             });
+
             elevator.on("idle", function () {
                 elevator.goToFloor(0);
             });
+
             elevator.on("stopped_at_floor", function (floorNum) {
+                console.log(`floor: ${floorNum}, floorsPressed: ${elevator.getPressedFloors()}, callButtonsPressed: ${callButtonsPressed}`);
                 const index = callButtonsPressed.indexOf(floorNum);
                 if (index > -1) {
                     callButtonsPressed.splice(index, 1);
                 }
-                console.log(`floor: ${floorNum}, callButtonsPressed: ${callButtonsPressed}`)
             });
         });
 
@@ -37,7 +46,7 @@
             floor.on("down_button_pressed", callButtonPressed);
         });
     },
-        update: function(dt, elevators, floors) {
-            // We normally don't need to do anything here
-        }
+    update: function(dt, elevators, floors) {
+        // We normally don't need to do anything here
+    }
 }
