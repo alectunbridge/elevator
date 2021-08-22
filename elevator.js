@@ -5,8 +5,17 @@
         elevators.forEach(elevator => {
             elevator.on("floor_button_pressed", function (floorNum) {
                 elevator.goToFloor(floorNum);
+                console.log(`floorButton: ${floorNum}, direction: ${elevator.destinationDirection()}`);
             });
             elevator.on("passing_floor", function (floorNum, direction) {
+                if (elevator.destinationDirection() === "up") {
+                    elevator.goingUpIndicator(true);
+                    elevator.goingDownIndicator(false);
+                } else {
+                    elevator.goingUpIndicator(false);
+                    elevator.goingDownIndicator(true);
+                }
+
                 var elevatorHasSpace = true;
                 if (elevator.maxPassengerCount() > 4) {
                     elevatorHasSpace = elevator.loadFactor() < 0.75;
@@ -24,9 +33,14 @@
 
             elevator.on("idle", function () {
                 elevator.goToFloor(0);
+                elevator.goingUpIndicator(false);
+                elevator.goingDownIndicator(true);
             });
 
             elevator.on("stopped_at_floor", function (floorNum) {
+                if (floorNum === 0) {
+                    elevator.goingUpIndicator(true);
+                }
                 console.log(`floor: ${floorNum}, floorsPressed: ${elevator.getPressedFloors()}, callButtonsPressed: ${callButtonsPressed}`);
                 const index = callButtonsPressed.indexOf(floorNum);
                 if (index > -1) {
